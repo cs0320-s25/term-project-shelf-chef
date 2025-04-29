@@ -1,9 +1,17 @@
 package Server;
 
+import spark.Spark;
+import spark.Route;
+import spark.Request;
+import spark.Response;
+import spark.staticfiles.StaticFilesLocation;
+import JSONParser.IDataSource;
+import JSONParser.DataSource;
+import ACSDataCache.ACSDataCache;
+import Server.RecipeHandler;
+import CSV.CSVUtilities;
 import static spark.Spark.after;
 
-import JSONParser.DataSource;
-import spark.Spark;
 
 public class APIServer {
 
@@ -26,6 +34,7 @@ public class APIServer {
     Spark.get("view", new ViewHandler());
     Spark.get("search", new SearchHandler());
     Spark.get("broadband", new BroadBandHandler(new DataSource()));
+    Spark.get("recipes", new RecipeHandler());
     Spark.init();
     Spark.awaitInitialization();
 
