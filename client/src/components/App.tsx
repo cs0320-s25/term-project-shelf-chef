@@ -1,9 +1,11 @@
 import { useState } from "react";
 import "../styles/App.css";
+import { secureHeapUsed } from "crypto";
 
 function App() {
   const [inputValue, setInputValue] = useState("");
   const [ingredients, setIngredients] = useState<string[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -13,6 +15,26 @@ function App() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if(!selectedFile) {
+      return;
+    }
+    fetch(`http://localhost:3232/receipt?file=${selectedFile}`).then((response) => response.json()).then(
+      (jsonData) => {
+        return jsonData["success"];
+      }
+    ).catch((error) => {
+      console.error("error scanning receipt");
+      }
+    )
+  }
   return (
     <div className="App" style={{ padding: "20px" }}>
       <h1>Ingredients</h1>
@@ -34,6 +56,16 @@ function App() {
           Submit
         </button>
       </form>
+
+      <div style={{ marginBottom: "20px" }}>
+        <input type="file" accept=".txt,.csv,.pdf" onChange={handleFileChange} />
+        <button
+          onClick={handleFileUpload}
+          style={{ marginLeft: "10px", padding: "8px 16px", fontSize: "16px" }}
+        >
+          Upload File
+        </button>
+      </div>
 
       <ul>
         {ingredients.map((ingredient, index) => (

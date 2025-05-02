@@ -35,6 +35,7 @@ public class APIServer {
     Spark.get("search", new SearchHandler());
     Spark.get("broadband", new BroadBandHandler(new DataSource()));
     Spark.get("recipes", new RecipeHandler());
+    Spark.get("receipt", new ReceiptHandler());
     Spark.init();
     Spark.awaitInitialization();
 
