@@ -11,6 +11,14 @@ public class CSVUtilities {
 
   private static List<List<String>> loadedData;
   private static Parser parser;
+
+  /**
+   * Gets the parser instance.
+   * @return The parser instance
+   */
+  public static Parser getParser() {
+    return parser;
+  }
   private static String loadedFilePath;
 
   /**
