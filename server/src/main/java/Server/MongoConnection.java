@@ -32,10 +32,10 @@ public class MongoConnection {
                 .applyConnectionString(new ConnectionString(connectionString))
                 .serverApi(serverApi)
                 .build();
-        // Create a new client and connect to the server
+        
         String jsonFilePath = "server/recipes.json";
         try (MongoClient mongoClient = MongoClients.create(settings)) {
-            MongoDatabase database = mongoClient.getDatabase("Recipes"); // Not "admin"
+            MongoDatabase database = mongoClient.getDatabase("Recipes"); 
             MongoCollection<Document> collection = database.getCollection("recipes");
 
             // Load JSON file
