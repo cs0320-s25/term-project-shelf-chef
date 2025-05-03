@@ -1,6 +1,5 @@
 import { useState } from "react";
 import "../styles/App.css";
-import { secureHeapUsed } from "crypto";
 
 function App() {
   const [inputValue, setInputValue] = useState("");
@@ -63,7 +62,7 @@ function App() {
           onClick={handleFileUpload}
           style={{ marginLeft: "10px", padding: "8px 16px", fontSize: "16px" }}
         >
-          Upload File
+          Upload Receipt
         </button>
       </div>
 

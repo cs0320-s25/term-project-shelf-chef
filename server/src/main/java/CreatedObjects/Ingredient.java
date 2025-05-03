@@ -1,4 +1,4 @@
-package main.java.CreatedObjects;
+package CreatedObjects;
 
 
 public class Ingredient {

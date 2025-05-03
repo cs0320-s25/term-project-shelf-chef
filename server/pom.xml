@@ -71,6 +71,22 @@
         <version>5.4.0</version> <!-- Use latest version -->
     </dependency>
 
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>5.7.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20240303</version>
+    </dependency>
+    <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>mongodb-driver-sync</artifactId>
+        <version>5.3.0</version>
+    </dependency>
+
   </dependencies>
 
   <build>
