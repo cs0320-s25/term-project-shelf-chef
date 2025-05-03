@@ -1,4 +1,4 @@
-package main.java.Creator;
+package Creator;
 
 import CreatedObjects.Ingredient;
 import Exceptions.FactoryFailureException;

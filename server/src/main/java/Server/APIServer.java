@@ -4,10 +4,10 @@ import spark.Spark;
 import spark.Route;
 import spark.Request;
 import spark.Response;
-import spark.staticfiles.StaticFilesLocation;
+import spark.staticfiles.*;
 import JSONParser.IDataSource;
 import JSONParser.DataSource;
-import ACSDataCache.ACSDataCache;
+import Server.ACSDataCache;
 import Server.RecipeHandler;
 import CSV.CSVUtilities;
 import static spark.Spark.after;
@@ -35,6 +35,7 @@ public class APIServer {
     Spark.get("search", new SearchHandler());
     Spark.get("broadband", new BroadBandHandler(new DataSource()));
     Spark.get("recipes", new RecipeHandler());
+    Spark.get("receipt", new ReceiptHandler());
     Spark.init();
     Spark.awaitInitialization();
 
