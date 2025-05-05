@@ -2,7 +2,6 @@ package Server;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoException;
 import com.mongodb.ServerApi;
 import com.mongodb.ServerApiVersion;
 import com.mongodb.client.MongoClient;
@@ -15,8 +14,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.*;
 
 import org.bson.Document;
 import org.json.JSONArray;
@@ -32,7 +29,7 @@ public class MongoConnection {
                 .applyConnectionString(new ConnectionString(connectionString))
                 .serverApi(serverApi)
                 .build();
-        
+                
         String jsonFilePath = "server/recipes.json";
         try (MongoClient mongoClient = MongoClients.create(settings)) {
             MongoDatabase database = mongoClient.getDatabase("Recipes"); 
