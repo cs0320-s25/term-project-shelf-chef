@@ -36,12 +36,21 @@ export default function Pantry() {
       if(!selectedFile) {
         return;
       }
-      fetch(`http://localhost:3600/receipt?file=${selectedFile}`).then((response) => response.json()).then(
-        (jsonData) => {
-          return jsonData["success"];
-        }
-      ).catch((error) => {
-        console.error("error scanning receipt");
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      fetch("http://localhost:3600/receipt", {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.text())  // use .text() to see raw response
+        .then((text) => {
+        console.log(selectedFile)
+        console.log("Raw response text:", text);
+        const jsonData = JSON.parse(text); // manually parse so you can see the error
+        return jsonData["success"];
+      })
+        .catch((error) => {
+        console.log(error);
         }
       )
     }
