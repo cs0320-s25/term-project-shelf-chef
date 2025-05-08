@@ -1,47 +1,43 @@
-import { useState } from "react";
 import "../styles/App.css";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignOutButton,
+  UserButton,
+} from "@clerk/clerk-react";
+
+import Pantry from "./Pantry";
 
 function App() {
-  const [inputValue, setInputValue] = useState("");
-  const [ingredients, setIngredients] = useState<string[]>([]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputValue.trim() !== "") {
-      setIngredients([...ingredients, inputValue.trim()]);
-      setInputValue(""); // Clear input after submitting
-    }
-  };
-
   return (
-    <div className="App" style={{ padding: "20px" }}>
-      <h1>Ingredients</h1>
-
-      <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Enter an ingredient"
+    <div className="App">
+      <SignedOut>
+        <SignInButton />
+      </SignedOut>
+      <SignedIn>
+        <div
           style={{
-            padding: "8px",
-            fontSize: "16px",
-            marginRight: "8px",
-            width: "250px",
+            display: "flex",
+            flexDirection: "column",
           }}
-        />
-        <button type="submit" style={{ padding: "8px 16px", fontSize: "16px" }}>
-          Submit
-        </button>
-      </form>
-
-      <ul>
-        {ingredients.map((ingredient, index) => (
-          <li key={index} style={{ fontSize: "18px", marginBottom: "6px" }}>
-            {ingredient}
-          </li>
-        ))}
-      </ul>
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+              alignContent: "center",
+              padding: "10px",
+              gap: "10px",
+            }}
+          >
+            <SignOutButton />
+            <UserButton />
+          </div>
+          <Pantry />
+        </div>
+      </SignedIn>
     </div>
   );
 }

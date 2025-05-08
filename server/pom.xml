@@ -60,7 +60,7 @@
       <artifactId>gson</artifactId>
       <version>2.10.1</version>
     </dependency>
-
+  
     <!-- Testing -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -68,6 +68,7 @@
       <version>5.4.0</version>
       <scope>test</scope>
     </dependency>
+    
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -83,10 +84,27 @@
 
     <!-- OCR -->
     <dependency>
-      <groupId>net.sourceforge.tess4j</groupId>
-      <artifactId>tess4j</artifactId>
-      <version>5.4.0</version>
+        <groupId>net.sourceforge.tess4j</groupId>
+        <artifactId>tess4j</artifactId>
+        <version>5.4.0</version> <!-- Use latest version -->
     </dependency>
+
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>5.7.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20240303</version>
+    </dependency>
+    <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>mongodb-driver-sync</artifactId>
+        <version>5.3.0</version>
+    </dependency>
+
   </dependencies>
 
   <build>
