@@ -31,10 +31,11 @@ public class RecipeHandler implements Route {
   }
 
   /**
-   * Handles HTTP requests to search for recipes based on ingredients.
+   * Handles HTTP requests to search for recipes based on ingredients and optional dietary restrictions.
    * 
    * @param request The HTTP request containing query parameters:
-   *                - "ingredients": comma-separated list of ingredients to search for
+   *                - "ingredients": comma-separated list of ingredients to search for (required)
+   *                - "dietaryRestrictions": comma-separated list of dietary restrictions (optional)
    * @param response The HTTP response object to be returned.
    * @return A JSON-formatted success or failure response serialized as a string.
    * @throws Exception If any error occurs during serialization or processing.
@@ -42,6 +43,7 @@ public class RecipeHandler implements Route {
   @Override
   public Object handle(Request request, Response response) {
     String ingredientsParam = request.queryParams("ingredients");
+    String dietaryRestrictionsParam = request.queryParams("dietaryRestrictions");
     Map<String, Object> jsonResponse = new HashMap<>();
 
     if (ingredientsParam == null || ingredientsParam.isEmpty()) {
@@ -61,6 +63,33 @@ public class RecipeHandler implements Route {
       List<Bson> filters = new ArrayList<>();
       for (String ingredient : searchIngredients) {
           filters.add(Filters.regex("extendedIngredients", Pattern.compile(ingredient, Pattern.CASE_INSENSITIVE)));
+      }
+
+      // Add dietary restriction filters if provided
+      if (dietaryRestrictionsParam != null && !dietaryRestrictionsParam.isEmpty()) {
+          String[] restrictions = dietaryRestrictionsParam.toLowerCase().split(",\\s*");
+          for (String restriction : restrictions) {
+              switch (restriction.trim()) {
+                  case "vegan":
+                      filters.add(Filters.eq("vegan", true));
+                      break;
+                  case "vegetarian":
+                      filters.add(Filters.eq("vegetarian", true));
+                      break;
+                  case "glutenfree":
+                      filters.add(Filters.eq("glutenFree", true));
+                      break;
+                  case "dairyfree":
+                      filters.add(Filters.eq("dairyFree", true));
+                      break;
+                  case "lowfodmap":
+                      filters.add(Filters.eq("lowFodmap", true));
+                      break;
+                  default:
+                      // Skip unknown dietary restrictions
+                      break;
+              }
+          }
       }
 
       // Combine filters with AND
