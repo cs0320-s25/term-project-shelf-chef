@@ -1,17 +1,11 @@
 package Server;
 
-import spark.Spark;
-import spark.Route;
-import spark.Request;
-import spark.Response;
-import spark.staticfiles.StaticFilesLocation;
-import JSONParser.IDataSource;
-import JSONParser.DataSource;
-import ACSDataCache.ACSDataCache;
-import Server.RecipeHandler;
-import CSV.CSVUtilities;
-import static spark.Spark.after;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 
+import JSONParser.DataSource;
+import spark.Spark;
+import static spark.Spark.after;
 
 public class APIServer {
 
@@ -30,11 +24,14 @@ public class APIServer {
           response.header("Access-Control-Allow-Methods", "*");
         });
 
+    MongoClient mongoClient = MongoClients.create("mongodb+srv://amasthay@cs.brown.edu:Testing!@#$%@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
+    RecipeHandler handler = new RecipeHandler(mongoClient, "database", "recipes");
+
     Spark.get("load", new LoadHandler());
     Spark.get("view", new ViewHandler());
     Spark.get("search", new SearchHandler());
     Spark.get("broadband", new BroadBandHandler(new DataSource()));
-    Spark.get("recipes", new RecipeHandler());
+    Spark.get("recipes", handler);
     Spark.init();
     Spark.awaitInitialization();
 
