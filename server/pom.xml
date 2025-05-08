@@ -25,6 +25,18 @@
       <version>1.13.0</version>
     </dependency>
 
+    <!-- MongoDB -->
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-sync</artifactId>
+      <version>4.10.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>bson</artifactId>
+      <version>4.10.2</version>
+    </dependency>
+
     <!-- Web framework -->
     <dependency>
       <groupId>com.sparkjava</groupId>
@@ -61,6 +73,12 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.13.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.3.1</version>
       <scope>test</scope>
     </dependency>
 
@@ -104,14 +122,6 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>3.0.0-M7</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>sort</goal>
-            </goals>
-            <phase>compile</phase>
-          </execution>
-        </executions>
       </plugin>
 
       <!--
@@ -164,18 +174,6 @@
             <phase>prepare-package</phase>
           </execution>
         </executions>
-      </plugin>
-
-      <!-- Without this, Maven will not run_gpt JUnit tests with
-                 JUnit, and we'll lack @BeforeAll/@BeforeEach/etc.
-              -->
-      <!-- The Surefire Plugin is used during the test phase of
-      the build lifecycle to execute the unit tests of an application.
-      It generates reports in TXT and XML formats. -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.0.0-M7</version>
       </plugin>
 
       <!-- The maven enforcer plugin enforces that the maven version is 3.6.0 -->

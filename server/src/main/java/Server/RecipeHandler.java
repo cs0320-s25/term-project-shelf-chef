@@ -1,17 +1,34 @@
 package Server;
 
-import com.squareup.moshi.JsonAdapter;
-import com.squareup.moshi.Moshi;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.squareup.moshi.JsonAdapter;
+import com.squareup.moshi.Moshi;
+
 import spark.Request;
 import spark.Response;
 import spark.Route;
-import CSV.CSVUtilities;
 
 public class RecipeHandler implements Route {
+
+  private final MongoCollection<Document> recipeCollection;
+
+  public RecipeHandler(MongoClient mongoClient, String dbName, String collectionName) {
+    MongoDatabase database = mongoClient.getDatabase(dbName);
+    this.recipeCollection = database.getCollection(collectionName);
+  }
 
   /**
    * Handles HTTP requests to search for recipes based on ingredients.
@@ -37,85 +54,49 @@ public class RecipeHandler implements Route {
     }
 
     try {
-      // Get the loaded CSV data
-      List<List<String>> data = CSVUtilities.getLoadedData();
-      if (data == null || data.isEmpty()) {
-        jsonResponse.put("response", "error_no_data");
-        jsonResponse.put("message", "No recipe data loaded");
-        return new RecipeFailureResponse(
-          (String) jsonResponse.get("response"),
-          (String) jsonResponse.get("message")
-      ).serialize();
+      // Parse and normalize ingredients
+      String[] searchIngredients = ingredientsParam.toLowerCase().split(",\\s*");
+
+      // Create a filter for each ingredient
+      List<Bson> filters = new ArrayList<>();
+      for (String ingredient : searchIngredients) {
+          filters.add(Filters.regex("extendedIngredients", Pattern.compile(ingredient, Pattern.CASE_INSENSITIVE)));
       }
 
-      // Get the headers
-      List<String> headers = CSVUtilities.getParser().getHeaders();
-      int ingredientsIndex = -1;
-      
-      // Find the index of the ingredients column
-      for (int i = 0; i < headers.size(); i++) {
-        if (headers.get(i).equalsIgnoreCase("ingredients")) {
-          ingredientsIndex = i;
-          break;
-        }
+      // Combine filters with AND
+      Bson filter = Filters.and(filters);
+
+      // Query MongoDB
+      FindIterable<Document> results = recipeCollection.find(filter);
+
+      List<Map<String, Object>> matchingRecipes = new ArrayList<>();
+      for (Document doc : results) {
+        matchingRecipes.add(docToMap(doc));
       }
 
-      if (ingredientsIndex == -1) {
-        jsonResponse.put("response", "error_bad_request");
-        jsonResponse.put("message", "Ingredients column not found in CSV");
-        return new RecipeFailureResponse(
-          (String) jsonResponse.get("response"),
-          (String) jsonResponse.get("message")
-      ).serialize();
-      }
-
-      // Split the ingredients parameter into individual ingredients
-      String[] searchIngredients = ingredientsParam.toLowerCase().split(",\s*");
-      List<List<String>> matchingRecipes = new ArrayList<>();
-
-      // Search through each row in the CSV
-      for (List<String> row : data) {
-        if (row.size() <= ingredientsIndex) continue;
-
-        // Get the ingredients for this recipe
-        String recipeIngredients = row.get(ingredientsIndex).toLowerCase();
-        
-        // Check if all search ingredients are present in the recipe
-        boolean allIngredientsMatch = true;
-        for (String searchIngredient : searchIngredients) {
-          if (!recipeIngredients.contains(searchIngredient)) {
-            allIngredientsMatch = false;
-            break;
-          }
-        }
-
-        if (allIngredientsMatch) {
-          matchingRecipes.add(row);
-        }
-      }
-
-      // Return the matching recipes
       jsonResponse.put("response", "success");
       jsonResponse.put("recipes", matchingRecipes);
-      return new RecipeSuccessResponse(
-          (String) jsonResponse.get("response"),
-          (List<List<String>>) jsonResponse.get("recipes")
-      ).serialize();
+      return new RecipeSuccessResponse("success", matchingRecipes).serialize();
 
     } catch (Exception e) {
       jsonResponse.put("response", "error_server");
       jsonResponse.put("message", "Server error: " + e.getMessage());
       return new RecipeFailureResponse(
-          (String) jsonResponse.get("response"),
-          (String) jsonResponse.get("message")
+          "error_server",
+          "Server error: " + e.getMessage()
       ).serialize();
     }
   }
 
-  /**
-   * Success response for recipe search.
-   */
-  public record RecipeSuccessResponse(String response, List<List<String>> recipes) {
+  private Map<String, Object> docToMap(Document doc) {
+    Map<String, Object> map = new HashMap<>();
+    for (Map.Entry<String, Object> entry : doc.entrySet()) {
+      map.put(entry.getKey(), entry.getValue());
+    }
+    return map;
+  }
+
+  public record RecipeSuccessResponse(String response, List<Map<String, Object>> recipes) {
     String serialize() {
       try {
         Moshi moshi = new Moshi.Builder().build();
@@ -128,9 +109,6 @@ public class RecipeHandler implements Route {
     }
   }
 
-  /**
-   * Failure response for recipe search.
-   */
   public record RecipeFailureResponse(String response, String message) {
     String serialize() {
       try {
@@ -144,4 +122,3 @@ public class RecipeHandler implements Route {
     }
   }
 }
-

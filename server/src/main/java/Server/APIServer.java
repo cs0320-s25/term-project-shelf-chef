@@ -1,5 +1,12 @@
 package Server;
 
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+
+import JSONParser.DataSource;
+import spark.Spark;
+
 import spark.Spark;
 import spark.Route;
 import spark.Request;
@@ -11,10 +18,10 @@ import JSONParser.DataSource;
 import Server.ACSDataCache;
 import Server.RecipeHandler;
 import CSV.CSVUtilities;
+
 import static spark.Spark.after;
 import static spark.Spark.before;
 import static spark.Spark.options;
-
 
 public class APIServer {
 
@@ -46,14 +53,20 @@ public class APIServer {
       response.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
     });
 
+    MongoClient mongoClient = MongoClients.create("mongodb+srv://amasthay@cs.brown.edu:Testing!@#$%@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
+    RecipeHandler handler = new RecipeHandler(mongoClient, "database", "recipes");
+
     Spark.get("load", new LoadHandler());
     Spark.get("view", new ViewHandler());
     Spark.get("search", new SearchHandler());
     Spark.get("broadband", new BroadBandHandler(new DataSource()));
-    Spark.get("recipes", new RecipeHandler());
+
+    Spark.get("recipes", handler);
+
     post("/receipt", new ReceiptHandler());
     
     Spark.get("addPantry", new PantryHandler());
+
     Spark.init();
     Spark.awaitInitialization();
 
