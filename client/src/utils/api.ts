@@ -17,6 +17,7 @@ export async function addIngredient(uid: string, title: string, quantity: string
 }
 
 export async function deleteIngredient(uid: string, name: string, quantity: string, expiration: string) {
+  //TODO
   const response = await fetch(`http://localhost:3600/deletePantry`, {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
@@ -37,6 +38,24 @@ export async function deleteIngredient(uid: string, name: string, quantity: stri
 
 
 export async function fetchIngredients(uid: string) {
+//TODO
+}
+
+
+export async function getRecipe(uid: string, ingredients: string[], dietaryRestrictions: string[]) {
+  if (!uid || !ingredients) {
+    throw new Error("User ID and Ingredients are required.");
+  }
+
+  const url = `http://localhost:3600/recipes?userid=${uid}&ingredients=${ingredients}&dietaryRestrictions=${dietaryRestrictions}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Error ${response.status}: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data["success"];
 
 }
 

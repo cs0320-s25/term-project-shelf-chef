@@ -9,27 +9,48 @@ interface Ingredient {
   }
   
   interface RecipeMakerProps {
-    selectedIngredients: Ingredient[];
+    selectedIngredients: string[];
   }
+
+  function handleRecipeSearch(): void {
+      //insert call to backend for recipes
+    throw new Error("Function not implemented.");
+}
   
-  export default function RecipeMaker({ selectedIngredients }: RecipeMakerProps) {
-    // Example: log or send to backend
-    useEffect(() => {
-      console.log("Selected Ingredients:", selectedIngredients);
-  
-      // TODO: Send to backend
-      // fetch("/query-recipes", { method: "POST", body: JSON.stringify(selectedIngredients) })
-    }, [selectedIngredients]);
-  
+  const RecipeMaker: React.FC<RecipeMakerProps> = ({ selectedIngredients }) => {
     return (
-      <div style={{ padding: "20px" }}>
-        <h1>Recipe Maker</h1>
-        {selectedIngredients.map((ingredient, index) => (
-          <p key={index}>
-            {ingredient.name} — {ingredient.quantity} — {ingredient.expiration}
-          </p>
-        ))}
+      <div>
+        <h2>Selected Ingredients for Recipe Search</h2>
+        <ul>
+          {selectedIngredients.map((ingredient, index) => (
+            <div key={index} style={{ fontSize: "16px" }}>
+              {ingredient}
+            </div>
+          ))}
+        </ul>
+
+        <button
+              onClick={() => handleRecipeSearch()}
+              style={{
+                padding: "8px 16px",
+                fontSize: "16px",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+              }}
+            >
+              Search for Recipe
+            </button>
       </div>
+    
+      
     );
-  }
-  
+
+
+
+
+
+  };
+
+  export default RecipeMaker;
+
+

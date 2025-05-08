@@ -20,7 +20,7 @@ interface Ingredient {
 
 function App() {
   const [currentPage, setCurrentPage] = useState("pantry");
-  const [selectedIngredients, setSelectedIngredients] = useState<Ingredient[]>([]);
+  const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
 
   const renderPage = () => {
     switch (currentPage) {

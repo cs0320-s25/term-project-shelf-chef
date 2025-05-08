@@ -9,8 +9,8 @@ interface Ingredient {
 }
 
 interface PantryProps {
-selectedIngredients: Ingredient[];
-setSelectedIngredients: React.Dispatch<React.SetStateAction<Ingredient[]>>;
+selectedIngredients: string[];
+setSelectedIngredients: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
 export default function Pantry({ selectedIngredients, setSelectedIngredients }: PantryProps) {
@@ -60,24 +60,14 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
   };
 
   const handleSelect = (ingredient: Ingredient) => {
-    const isSelected = selectedIngredients.some(
-      (item) =>
-        item.name === ingredient.name &&
-        item.quantity === ingredient.quantity &&
-        item.expiration === ingredient.expiration
-    );
+    const isSelected = selectedIngredients.includes(ingredient.name);
   
     if (isSelected) {
-      setSelectedIngredients(selectedIngredients.filter(
-        (item) =>
-          !(
-            item.name === ingredient.name &&
-            item.quantity === ingredient.quantity &&
-            item.expiration === ingredient.expiration
-          )
-      ));
+      setSelectedIngredients(
+        selectedIngredients.filter((name) => name !== ingredient.name)
+      );
     } else {
-      setSelectedIngredients([...selectedIngredients, ingredient]);
+      setSelectedIngredients([...selectedIngredients, ingredient.name]);
     }
   };
 
@@ -142,12 +132,7 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
       {ingredients.map((ingredient, index) => {
-        const isChecked = selectedIngredients.some(
-          (item) =>
-            item.name === ingredient.name &&
-            item.quantity === ingredient.quantity &&
-            item.expiration === ingredient.expiration
-        );
+        const isChecked = selectedIngredients.includes(ingredient.name);
 
         return (
           <div key={index} style={{
@@ -179,6 +164,11 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
           </div>
         );
       })}
+      </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+        
+
       </div>
     </div>
   );
