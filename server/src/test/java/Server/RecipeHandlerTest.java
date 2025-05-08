@@ -183,7 +183,6 @@ public class RecipeHandlerTest {
                 assertNotNull(ingredients, "Recipe should have ingredients");
                 assertTrue(ingredients.toLowerCase().contains("pasta"), "Recipe should contain pasta");
                 assertTrue(ingredients.toLowerCase().contains("tomato"), "Recipe should contain tomato");
-                
                 // Check dietary restrictions
                 assertTrue((Boolean) recipe.get("vegan"), "Recipe should be vegan");
                 assertTrue((Boolean) recipe.get("dairyFree"), "Recipe should be dairy-free");
