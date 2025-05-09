@@ -6,13 +6,15 @@ export async function addIngredient(uid: string, title: string, quantity: string
   }
 
   const url = `http://localhost:3600/addPantry?userid=${encodeURIComponent(uid)}&name=${encodeURIComponent(title)}&quantity=${quantity}&expiration=${encodeURIComponent(date)}`;
+
   const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`Error ${response.status}: ${response.statusText}`);
   }
-
+  console.log(response)
   const data = await response.json();
+  console.log(data)
   return data["success"];
 }
 

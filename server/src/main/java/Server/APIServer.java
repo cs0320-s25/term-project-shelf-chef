@@ -54,7 +54,7 @@ public class APIServer {
     });
 
     MongoClient mongoClient = MongoClients.create("mongodb+srv://ryanma1:DsHucS2aJltLkIp9@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
-    RecipeHandler handler = new RecipeHandler(mongoClient, "database", "recipes");
+    RecipeHandler handler = new RecipeHandler(mongoClient, "Recipes", "recipes");
 
     Spark.get("load", new LoadHandler());
     Spark.get("view", new ViewHandler());
