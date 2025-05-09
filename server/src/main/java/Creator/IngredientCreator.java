@@ -1,8 +1,9 @@
 package Creator;
 
+import java.util.List;
+
 import CreatedObjects.Ingredient;
 import Exceptions.FactoryFailureException;
-import java.util.List;
 
 public class IngredientCreator implements CreatorFromRow<Ingredient> {
 
