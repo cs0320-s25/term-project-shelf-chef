@@ -53,7 +53,7 @@ public class APIServer {
       response.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
     });
 
-    MongoClient mongoClient = MongoClients.create("mongodb+srv://amasthay@cs.brown.edu:Testing!@#$%@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
+    MongoClient mongoClient = MongoClients.create("mongodb+srv://ryanma1:DsHucS2aJltLkIp9@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
     RecipeHandler handler = new RecipeHandler(mongoClient, "database", "recipes");
 
     Spark.get("load", new LoadHandler());
