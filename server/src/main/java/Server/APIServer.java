@@ -43,17 +43,10 @@ public class APIServer {
       response.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
     });
 
-  
-    String connectionString = "mongodb+srv://ryanma1:DsHucS2aJltLkIp9@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes";
-    ServerApi serverApi = ServerApi.builder()
-            .version(ServerApiVersion.V1)
-            .build();
-    MongoClientSettings settings = MongoClientSettings.builder()
-            .applyConnectionString(new ConnectionString(connectionString))
-            .serverApi(serverApi)
-            .build();
-    MongoClient mongoClient = MongoClients.create(settings);
-    RecipeHandler handler = new RecipeHandler(mongoClient, "Recipes", "recipes");
+
+    MongoClient mongoClient = MongoClients.create("mongodb+srv://ryanma1:DsHucS2aJltLkIp9@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
+    RecipeHandler handler = new RecipeHandler(mongoClient, "database", "recipes");
+
 
     Spark.get("load", new LoadHandler());
     Spark.get("view", new ViewHandler());

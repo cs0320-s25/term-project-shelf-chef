@@ -1,41 +1,63 @@
 import { useState } from "react";
-import "../styles/App.css";
 import { useUser } from "@clerk/clerk-react";
+import { addIngredient, deleteIngredient } from "../utils/api";
+
+interface Ingredient {
+  name: string;
+  quantity: string;
+  expiration: string; // Format: MM/DD/YY
+}
+
+interface PantryProps {
+selectedIngredients: string[];
+setSelectedIngredients: React.Dispatch<React.SetStateAction<string[]>>;
+}
+
+export default function Pantry({ selectedIngredients, setSelectedIngredients }: PantryProps) {
+  const [ingredient, setIngredient] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [expiration, setExpiration] = useState("");
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const { user } = useUser();
 
 
-export default function Pantry() {
-    const [inputValue, setInputValue] = useState("");
-    const [ingredients, setIngredients] = useState<string[]>([]);
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const { user } = useUser();
-  
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (inputValue.trim() !== "") {
-        setIngredients([...ingredients, inputValue.trim()]);
-        setInputValue(""); // Clear input after submitting
-        fetch(`http://localhost:3600/addPantry?userid=${user.id}&name=${inputValue}&quantity=1&expiration=12/31/25`).then((response) => response.json()).then(
-            (jsonData) => {
-              return jsonData["success"];
-            }
-          ).catch((error) => {
-              console.error(error);
-            }
-          )
-      }
-    };
-  
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        setSelectedFile(file);
-      }
-    };
-  
-    const handleFileUpload = async () => {
-      if(!selectedFile) {
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (ingredient.trim() && quantity.trim() && expiration.trim()) {
+      const dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{2}$/;
+      if (!dateRegex.test(expiration.trim())) {
+        alert("Expiration date must be in DD/MM/YY format.");
         return;
       }
+
+
+      const newIngredient: Ingredient = {
+        name: ingredient.trim(),
+        quantity: quantity.trim(),
+        expiration: expiration.trim(),
+      };
+      const updatedIngredients = [...ingredients, newIngredient];
+
+      // Sort by expiration
+      updatedIngredients.sort((a, b) => {
+        const dateA = new Date(a.expiration);
+        const dateB = new Date(b.expiration);
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      setIngredients(updatedIngredients);
+      setIngredient("");
+      setQuantity("");
+      setExpiration("");
+
+      await addIngredient(
+        user.id,
+        newIngredient.name,
+        newIngredient.quantity,
+        newIngredient.expiration
+      );
+
       const formData = new FormData();
       formData.append("file", selectedFile);
       fetch("http://localhost:3600/receipt", {
@@ -54,45 +76,119 @@ export default function Pantry() {
         }
       )
     }
-    return (
-      <div className="App" style={{ padding: "20px" }}>
-        <h1>Ingredients</h1>
+  };
+
+  const handleSelect = (ingredient: Ingredient) => {
+    const isSelected = selectedIngredients.includes(ingredient.name);
   
-        <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Enter an ingredient"
-            style={{
-              padding: "8px",
-              fontSize: "16px",
-              marginRight: "8px",
-              width: "250px",
-            }}
-          />
-          <button type="submit" style={{ padding: "8px 16px", fontSize: "16px" }}>
-            Submit
-          </button>
-        </form>
-  
-        <div style={{ marginBottom: "20px" }}>
-          <input type="file" accept=".txt,.csv,.pdf" onChange={handleFileChange} />
-          <button
-            onClick={handleFileUpload}
-            style={{ marginLeft: "10px", padding: "8px 16px", fontSize: "16px" }}
-          >
-            Upload Receipt
-          </button>
-        </div>
-  
-        <ul>
-          {ingredients.map((ingredient, index) => (
-            <li key={index} style={{ fontSize: "18px", marginBottom: "6px" }}>
-              {ingredient}
-            </li>
-          ))}
-        </ul>
+    if (isSelected) {
+      setSelectedIngredients(
+        selectedIngredients.filter((name) => name !== ingredient.name)
+      );
+    } else {
+      setSelectedIngredients([...selectedIngredients, ingredient.name]);
+    }
+  };
+
+  const isExpired = (date: string) => {
+    const today = new Date();
+    const expDate = new Date(date);
+    return expDate < today;
+  };
+
+  const handleDelete = async (indexToDelete: number) => {
+    const deletingIngred = ingredients[indexToDelete];
+    const updated = ingredients.filter((_, index) => index !== indexToDelete);
+    setIngredients(updated);
+    await deleteIngredient(user.id, deletingIngred.name, deletingIngred.quantity, deletingIngred.expiration)
+  };
+
+  return (
+    <div className="App" style={{ padding: "20px" }}>
+      <h1>Pantry Shelf</h1>
+
+      <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
+        <input
+          type="text"
+          value={ingredient}
+          onChange={(e) => setIngredient(e.target.value)}
+          placeholder="Enter an Ingredient"
+          style={{
+            padding: "8px",
+            fontSize: "16px",
+            marginRight: "8px",
+            width: "250px",
+          }}
+        />
+        <input
+          type="text"
+          value={quantity}
+          onChange={(e) => setQuantity(e.target.value)}
+          placeholder="Enter Quantity"
+          style={{
+            padding: "8px",
+            fontSize: "16px",
+            marginRight: "8px",
+            width: "250px",
+          }}
+        />
+        <input
+          type="text"
+          value={expiration}
+          onChange={(e) => setExpiration(e.target.value)}
+          placeholder="Enter Expiration (MM/DD/YY)"
+          style={{
+            padding: "8px",
+            fontSize: "16px",
+            marginRight: "8px",
+            width: "250px",
+          }}
+        />
+        <button type="submit" style={{ padding: "8px 16px", fontSize: "16px" }}>
+          Submit
+        </button>
+      </form>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+      {ingredients.map((ingredient, index) => {
+        const isChecked = selectedIngredients.includes(ingredient.name);
+
+        return (
+          <div key={index} style={{
+            border: "1px solid #ccc",
+            borderRadius: "8px",
+            padding: "16px",
+            width: "220px",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            backgroundColor: isExpired(ingredient.expiration)
+              ? "#ffd6d6" // red-ish if expired
+              : "#f9f9f9",
+          }}>
+            <h3>{ingredient.name}</h3>
+            <p>Quantity: {ingredient.quantity}</p>
+            <p>Expiration: {ingredient.expiration}</p>
+            <p>
+            <label>
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={() => handleSelect(ingredient)}
+              />
+              Use in recipe
+            </label>
+            </p>
+            <button onClick={() => handleDelete(index)} style={{ color: "red" }}>
+              Delete
+            </button>
+          </div>
+        );
+      })}
       </div>
-    );
-  }
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+        
+
+      </div>
+    </div>
+  );
+}
