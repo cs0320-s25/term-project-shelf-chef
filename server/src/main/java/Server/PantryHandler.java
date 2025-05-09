@@ -37,8 +37,7 @@ public class PantryHandler implements Route {
         String name = request.queryParams("name");
         String expirationString = request.queryParams("expiration");
         String quantityString = request.queryParams("quantity");
-
-        int quantity = Integer.parseInt(quantityString);
+        String delete = request.queryParams("delete");
 
         Map<String, Object> jsonResponse = new HashMap<>();
 
@@ -51,31 +50,52 @@ public class PantryHandler implements Route {
                 .serverApi(serverApi)
                 .build();
 
-                try (MongoClient mongoClient = MongoClients.create(settings)) {
-                    MongoDatabase database = mongoClient.getDatabase("UserPantries"); 
-                    MongoCollection<Document> collection = database.getCollection("pantries");
+        try (MongoClient mongoClient = MongoClients.create(settings)) {
+            MongoDatabase database = mongoClient.getDatabase("UserPantries"); 
+            MongoCollection<Document> collection = database.getCollection("pantries");
 
-                    Bson idFilter = Filters.eq("userId", userId);
-                    Bson update = Updates.setOnInsert("pantry", new ArrayList<>());
-                    UpdateOptions options = new UpdateOptions().upsert(true);
-                    
-                    collection.updateOne(idFilter, update, options);
-                    
-                    Bson pantryFilter = Filters.eq("pantry.name", name);
-                    Bson updateQuant = Updates.inc("pantry.$.quantity", quantity);
-
-                    UpdateResult result = collection.updateOne(Filters.and(idFilter, pantryFilter), updateQuant);
-                    if (result.getModifiedCount() == 0) { //if document doesn't exist (i.e nothing to update), insert
-                        Document newIngredient = new Document("name", name)
-                            .append("expirationDate", expirationString)
-                            .append("quantity", quantity);
-                        Bson updatePantry = Updates.push("pantry", newIngredient);
-                        collection.updateOne(idFilter, updatePantry);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    //jsonResponse.put("error", "could not add item to pantry");
+            Bson idFilter = Filters.eq("userId", userId);
+            
+            if (delete != null && delete.equalsIgnoreCase("true")) {
+                Bson deleteFilter = Filters.eq("pantry.name", name);
+                Bson update = Updates.pull("pantry", new Document("name", name));
+                UpdateResult result = collection.updateOne(Filters.and(idFilter, deleteFilter), update);
+                
+                if (result.getModifiedCount() > 0) {
+                    jsonResponse.put("status", "success");
+                    jsonResponse.put("message", "Ingredient removed from pantry");
+                } else {
+                    jsonResponse.put("status", "error");
+                    jsonResponse.put("message", "Ingredient not found in pantry");
                 }
+            } else {
+                int quantity = Integer.parseInt(quantityString);
+                
+                Bson update = Updates.setOnInsert("pantry", new ArrayList<>());
+                UpdateOptions options = new UpdateOptions().upsert(true);
+                
+                collection.updateOne(idFilter, update, options);
+                
+                Bson pantryFilter = Filters.eq("pantry.name", name);
+                Bson updateQuant = Updates.inc("pantry.$.quantity", quantity);
+
+                UpdateResult result = collection.updateOne(Filters.and(idFilter, pantryFilter), updateQuant);
+                if (result.getModifiedCount() == 0) {
+                    Document newIngredient = new Document("name", name)
+                        .append("expirationDate", expirationString)
+                        .append("quantity", quantity);
+                    Bson updatePantry = Updates.push("pantry", newIngredient);
+                    collection.updateOne(idFilter, updatePantry);
+                }
+                
+                jsonResponse.put("status", "success");
+                jsonResponse.put("message", "Ingredient added/updated in pantry");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            jsonResponse.put("status", "error");
+            jsonResponse.put("message", "Error processing request: " + e.getMessage());
+        }
 
         return jsonResponse;
     }
