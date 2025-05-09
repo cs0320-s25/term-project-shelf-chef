@@ -4,6 +4,9 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 import org.bson.Document;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +33,12 @@ import com.squareup.moshi.Types;
 
 import spark.Request;
 import spark.Response;
+
+import com.mongodb.client.MongoClients;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.ServerApi;
+import com.mongodb.ServerApiVersion;
+import com.mongodb.ConnectionString;
 
 public class RecipeHandlerTest {
     private static RecipeHandler handler;
@@ -236,6 +245,82 @@ public class RecipeHandlerTest {
             assertEquals("Missing required parameter: ingredients", failureResponse.message());
         } catch (Exception e) {
             fail("Failed to parse response: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testRealDatabaseConnection() {
+        // Create a real MongoDB client
+        MongoClient realMongoClient = null;
+        try {
+            System.out.println("Starting test with real MongoDB connection...");
+            
+            // Set up MongoDB Atlas connection
+            String connectionString = "mongodb+srv://ryanma1:DsHucS2aJltLkIp9@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes";
+            ServerApi serverApi = ServerApi.builder()
+                    .version(ServerApiVersion.V1)
+                    .build();
+            MongoClientSettings settings = MongoClientSettings.builder()
+                    .applyConnectionString(new ConnectionString(connectionString))
+                    .serverApi(serverApi)
+                    .build();
+            
+            // Connect to MongoDB Atlas
+            realMongoClient = MongoClients.create(settings);
+            System.out.println("Connected to MongoDB Atlas");
+            
+            RecipeHandler realHandler = new RecipeHandler(realMongoClient, "Recipes", "recipes");
+            
+            Request request = mock(Request.class);
+            Response response = mock(Response.class);
+            
+            when(request.queryParams("ingredients")).thenReturn("chicken,rice");
+            when(request.queryParams("dietaryRestrictions")).thenReturn(null);
+            
+            System.out.println("Executing handler with ingredients: chicken,rice");
+            
+            String result = (String) realHandler.handle(request, response);
+            System.out.println("Raw response: " + result);
+            
+            Moshi moshi = new Moshi.Builder().build();
+            Type type = Types.newParameterizedType(Map.class, String.class, Object.class);
+            JsonAdapter<Map<String, Object>> adapter = moshi.adapter(type);
+            Map<String, Object> jsonResponse = adapter.fromJson(result);
+            
+            System.out.println("Response type: " + jsonResponse.get("response"));
+            if (jsonResponse.get("message") != null) {
+                System.out.println("Error message: " + jsonResponse.get("message"));
+            }
+            
+            assertNotNull(jsonResponse, "Response should not be null");
+            
+            if ("error_server".equals(jsonResponse.get("response"))) {
+                String errorMsg = (String) jsonResponse.get("message");
+                fail("Server returned error: " + errorMsg);
+            }
+            
+            assertEquals("success", jsonResponse.get("response"), "Response should indicate success");
+            
+            // Get and verify recipes
+            List<Map<String, Object>> recipes = (List<Map<String, Object>>) jsonResponse.get("recipes");
+            assertNotNull(recipes, "Recipes list should not be null");
+            System.out.println("Found " + recipes.size() + " recipes");
+            
+            if (!recipes.isEmpty()) {
+                Map<String, Object> firstRecipe = recipes.get(0);
+                System.out.println("First recipe title: " + firstRecipe.get("title"));
+                System.out.println("First recipe ingredients: " + firstRecipe.get("extendedIngredients"));
+            }
+            
+        } catch (Exception e) {
+            System.out.println("Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            fail("Test failed with exception: " + e.getMessage());
+        } finally {
+            if (realMongoClient != null) {
+                System.out.println("Closing MongoDB connection");
+                realMongoClient.close();
+            }
         }
     }
 } 
