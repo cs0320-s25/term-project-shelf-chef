@@ -46,16 +46,43 @@ export async function getRecipe(uid: string, ingredients: string[], dietaryRestr
   if (!uid || !ingredients) {
     throw new Error("User ID and Ingredients are required.");
   }
+  console.log("Entered getRecipeCall")
 
-  const url = `http://localhost:3600/recipes?userid=${uid}&ingredients=${ingredients}&dietaryRestrictions=${dietaryRestrictions}`;
-  const response = await fetch(url);
+  const ingredParams = ingredients.join(",")
+  const dietParams = dietaryRestrictions.join(",")
+  console.log("ingredients:", ingredients)
+  console.log("dietary:", dietaryRestrictions)
 
-  if (!response.ok) {
-    throw new Error(`Error ${response.status}: ${response.statusText}`);
+  
+  if (dietaryRestrictions.length > 0) {
+    console.log("Dietary Restrictions Search")
+    const url = `http://localhost:3600/recipes?userid=${uid}&ingredients=${ingredParams}&dietaryRestrictions=${dietParams}`;
+    console.log(url)
+    const response = await fetch(url);
+    console.log("GetRecipe Call Complete")
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+  
+    const data = await response.json();
+    return data["success"];
+    
+  } else {
+    console.log("No Dietary Restrictions Search")
+    const url = `http://localhost:3600/recipes?userid=${uid}&ingredients=${ingredParams}&dietaryRestrictions=${''}`;
+    console.log(url)
+    const response = await fetch(url);
+    console.log(url)
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+  
+    const data = await response.json();
+    return data["success"];
   }
+  
 
-  const data = await response.json();
-  return data["success"];
+  
 
 }
 
