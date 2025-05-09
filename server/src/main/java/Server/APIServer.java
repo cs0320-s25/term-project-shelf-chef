@@ -1,27 +1,17 @@
 package Server;
 
-
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.ServerApi;
+import com.mongodb.ServerApiVersion;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
 import JSONParser.DataSource;
 import spark.Spark;
-
-import spark.Spark;
-import spark.Route;
-import spark.Request;
-import spark.Response;
-import static spark.Spark.*;
-import spark.staticfiles.*;
-import JSONParser.IDataSource;
-import JSONParser.DataSource;
-import Server.ACSDataCache;
-import Server.RecipeHandler;
-import CSV.CSVUtilities;
-
-import static spark.Spark.after;
 import static spark.Spark.before;
 import static spark.Spark.options;
+import static spark.Spark.post;
 
 public class APIServer {
 
@@ -53,8 +43,17 @@ public class APIServer {
       response.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Content-Length, X-Requested-With");
     });
 
-    MongoClient mongoClient = MongoClients.create("mongodb+srv://amasthay@cs.brown.edu:Testing!@#$%@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
-    RecipeHandler handler = new RecipeHandler(mongoClient, "database", "recipes");
+  
+    String connectionString = "mongodb+srv://ryanma1:DsHucS2aJltLkIp9@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes";
+    ServerApi serverApi = ServerApi.builder()
+            .version(ServerApiVersion.V1)
+            .build();
+    MongoClientSettings settings = MongoClientSettings.builder()
+            .applyConnectionString(new ConnectionString(connectionString))
+            .serverApi(serverApi)
+            .build();
+    MongoClient mongoClient = MongoClients.create(settings);
+    RecipeHandler handler = new RecipeHandler(mongoClient, "Recipes", "recipes");
 
     Spark.get("load", new LoadHandler());
     Spark.get("view", new ViewHandler());
