@@ -29,12 +29,17 @@
     <dependency>
       <groupId>org.mongodb</groupId>
       <artifactId>mongodb-driver-sync</artifactId>
-      <version>4.10.2</version>
+      <version>5.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-core</artifactId>
+      <version>5.3.0</version>
     </dependency>
     <dependency>
       <groupId>org.mongodb</groupId>
       <artifactId>bson</artifactId>
-      <version>4.10.2</version>
+      <version>5.3.0</version>
     </dependency>
 
     <!-- Web framework -->
@@ -98,11 +103,6 @@
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>20240303</version>
-    </dependency>
-    <dependency>
-        <groupId>org.mongodb</groupId>
-        <artifactId>mongodb-driver-sync</artifactId>
-        <version>5.3.0</version>
     </dependency>
 
   </dependencies>
