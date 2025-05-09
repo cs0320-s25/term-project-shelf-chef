@@ -24,7 +24,7 @@ public class APIServer {
           response.header("Access-Control-Allow-Methods", "*");
         });
 
-    MongoClient mongoClient = MongoClients.create("mongodb+srv://amasthay@cs.brown.edu:Testing!@#$%@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
+    MongoClient mongoClient = MongoClients.create("mongodb+srv://amasthay@cs.brown.edu:@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
     RecipeHandler handler = new RecipeHandler(mongoClient, "database", "recipes");
 
     Spark.get("load", new LoadHandler());
