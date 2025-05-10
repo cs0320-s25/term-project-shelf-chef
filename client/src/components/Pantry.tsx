@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { addIngredient, deleteIngredient } from "../utils/api";
+import { addIngredient, deleteIngredient, fetchIngredients } from "../utils/api";
 
 interface Ingredient {
   name: string;
@@ -20,7 +20,20 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const { user } = useUser();
 
+  const loadPantry = async () => {
+    if (user?.id) {
+      try {
+        const fetchedIngredients = await fetchIngredients(user.id);
+        setIngredients(fetchedIngredients);
+      } catch (err) {
+        console.error("Error fetching pantry:", err);
+      }
+    }
+  };
 
+  useEffect(() => {
+    loadPantry();
+  }, [user?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +70,8 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
         newIngredient.quantity,
         newIngredient.expiration
       );
+
+      await loadPantry();
 
       const formData = new FormData();
       formData.append("file", selectedFile);

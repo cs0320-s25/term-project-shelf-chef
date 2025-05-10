@@ -38,7 +38,12 @@ export async function deleteIngredient(uid: string, name: string, quantity: stri
 
 
 export async function fetchIngredients(uid: string) {
-//TODO
+  const response = await fetch(
+    `http://localhost:3600/addPantry?userid=${userId}&fetch=true`
+  );
+  const data = await response.json();
+  console.log(data)
+  return data.pantry
 }
 
 

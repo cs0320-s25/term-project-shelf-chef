@@ -1,5 +1,6 @@
 package Server;
 
+import com.google.gson.Gson;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerApi;
@@ -38,29 +39,45 @@ public class PantryHandler implements Route {
         String expirationString = request.queryParams("expiration");
         String quantityString = request.queryParams("quantity");
         String delete = request.queryParams("delete");
+        String fetch = request.queryParams("fetch");
 
         Map<String, Object> jsonResponse = new HashMap<>();
 
         String connectionString = "mongodb+srv://ryanma1:DsHucS2aJltLkIp9@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes";
         ServerApi serverApi = ServerApi.builder()
-                .version(ServerApiVersion.V1)
-                .build();
+            .version(ServerApiVersion.V1)
+            .build();
         MongoClientSettings settings = MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(connectionString))
-                .serverApi(serverApi)
-                .build();
+            .applyConnectionString(new ConnectionString(connectionString))
+            .serverApi(serverApi)
+            .build();
 
         try (MongoClient mongoClient = MongoClients.create(settings)) {
-            MongoDatabase database = mongoClient.getDatabase("UserPantries"); 
+            MongoDatabase database = mongoClient.getDatabase("UserPantries");
             MongoCollection<Document> collection = database.getCollection("pantries");
 
             Bson idFilter = Filters.eq("userId", userId);
-            
+
+            if (fetch != null && fetch.equalsIgnoreCase("true")) {
+                Document userDoc = collection.find(idFilter).first();
+
+                if (userDoc != null && userDoc.containsKey("pantry")) {
+                    jsonResponse.put("status", "success");
+                    jsonResponse.put("message", "Pantry fetched successfully");
+                    jsonResponse.put("pantry", userDoc.get("pantry"));
+                } else {
+                    jsonResponse.put("status", "error");
+                    jsonResponse.put("message", "Pantry not found for user");
+                }
+
+                return new Document(jsonResponse).toJson();
+            }
+
             if (delete != null && delete.equalsIgnoreCase("true")) {
                 Bson deleteFilter = Filters.eq("pantry.name", name);
                 Bson update = Updates.pull("pantry", new Document("name", name));
                 UpdateResult result = collection.updateOne(Filters.and(idFilter, deleteFilter), update);
-                
+
                 if (result.getModifiedCount() > 0) {
                     jsonResponse.put("status", "success");
                     jsonResponse.put("message", "Ingredient removed from pantry");
@@ -70,12 +87,12 @@ public class PantryHandler implements Route {
                 }
             } else {
                 int quantity = Integer.parseInt(quantityString);
-                
+
                 Bson update = Updates.setOnInsert("pantry", new ArrayList<>());
                 UpdateOptions options = new UpdateOptions().upsert(true);
-                
+
                 collection.updateOne(idFilter, update, options);
-                
+
                 Bson pantryFilter = Filters.eq("pantry.name", name);
                 Bson updateQuant = Updates.inc("pantry.$.quantity", quantity);
 
@@ -87,9 +104,11 @@ public class PantryHandler implements Route {
                     Bson updatePantry = Updates.push("pantry", newIngredient);
                     collection.updateOne(idFilter, updatePantry);
                 }
-                
+
                 jsonResponse.put("status", "success");
                 jsonResponse.put("message", "Ingredient added/updated in pantry");
+                Gson gson = new Gson();
+                return gson.toJson(jsonResponse);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -97,7 +116,6 @@ public class PantryHandler implements Route {
             jsonResponse.put("message", "Error processing request: " + e.getMessage());
         }
 
-        return jsonResponse;
+        return jsonResponse.toString();
     }
 }
-    

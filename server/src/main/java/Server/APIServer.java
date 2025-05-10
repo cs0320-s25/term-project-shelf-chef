@@ -44,7 +44,7 @@ public class APIServer {
     });
 
 
-    MongoClient mongoClient = MongoClients.create("mongodb+srv://ryanma1:DsHucS2aJltLkIp9@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
+    MongoClient mongoClient = MongoClients.create("mongodb+srv://kyle:kylepassword@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
     RecipeHandler handler = new RecipeHandler(mongoClient, "database", "recipes");
 
 
@@ -56,7 +56,7 @@ public class APIServer {
     Spark.get("recipes", handler);
 
     post("/receipt", new ReceiptHandler());
-    
+
     Spark.get("addPantry", new PantryHandler());
 
     Spark.init();
