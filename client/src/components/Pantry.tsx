@@ -48,15 +48,6 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
         quantity: quantity.trim(),
         expiration: expiration.trim(),
       };
-      const updatedIngredients = [...ingredients, newIngredient];
-      // Sort by expiration
-      updatedIngredients.sort((a, b) => {
-        const dateA = new Date(a.expiration);
-        const dateB = new Date(b.expiration);
-        return dateA.getTime() - dateB.getTime();
-      });
-
-      setIngredients(updatedIngredients);
       setIngredient("");
       setQuantity("");
       setExpiration("");
@@ -66,7 +57,7 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
         newIngredient.quantity,
         newIngredient.expiration
       );
-      
+
       await loadPantry();
 
       const formData = new FormData();
