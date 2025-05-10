@@ -40,6 +40,7 @@ public class PantryHandler implements Route {
         String quantityString = request.queryParams("quantity");
         String delete = request.queryParams("delete");
         String fetch = request.queryParams("fetch");
+        String update = request.queryParams("update");
 
         Map<String, Object> jsonResponse = new HashMap<>();
 
@@ -73,36 +74,95 @@ public class PantryHandler implements Route {
                 return new Document(jsonResponse).toJson();
             }
 
-            if (delete != null && delete.equalsIgnoreCase("true")) {
-                Bson deleteFilter = Filters.eq("pantry.name", name);
-                Bson update = Updates.pull("pantry", new Document("name", name));
-                UpdateResult result = collection.updateOne(Filters.and(idFilter, deleteFilter), update);
+            if (update != null && update.equalsIgnoreCase("true")) {
+                Document userDoc = collection.find(idFilter).first();
 
-                if (result.getModifiedCount() > 0) {
-                    jsonResponse.put("status", "success");
-                    jsonResponse.put("message", "Ingredient removed from pantry");
+                if (userDoc != null && userDoc.containsKey("pantry")) {
+                    // Match the pantry item with BOTH name and expirationDate
+                    Bson pantryMatch = Filters.elemMatch("pantry", Filters.and(
+                        Filters.eq("name", name),
+                        Filters.eq("expirationDate", expirationString)
+                    ));
+
+                    // Update the quantity of that pantry item
+                    Bson updateQuantity = Updates.set("pantry.$.quantity", Integer.parseInt(quantityString));
+
+                    // Perform the update where the user matches and pantry item matches
+                    UpdateResult result = collection.updateOne(Filters.and(idFilter, pantryMatch), updateQuantity);
+
+                    if (result.getModifiedCount() > 0) {
+                        jsonResponse.put("status", "success");
+                        jsonResponse.put("message", "Ingredient quantity updated");
+                    } else {
+                        jsonResponse.put("status", "error");
+                        jsonResponse.put("message", "Matching ingredient not found in pantry");
+                    }
                 } else {
                     jsonResponse.put("status", "error");
-                    jsonResponse.put("message", "Ingredient not found in pantry");
+                    jsonResponse.put("message", "Pantry not found for user");
                 }
-            } else {
+
+                return new Document(jsonResponse).toJson();
+            }
+
+            if (delete != null && delete.equalsIgnoreCase("true")) {
+                Document userDoc = collection.find(idFilter).first();
+
+                if (userDoc != null && userDoc.containsKey("pantry")) {
+                    // Match the pantry item with BOTH name and expirationDate
+                    Bson pantryMatch = Filters.elemMatch("pantry", Filters.and(
+                        Filters.eq("name", name),
+                        Filters.eq("expirationDate", expirationString)
+                    ));
+
+                    // Define the exact ingredient to remove
+                    Document ingredientToRemove = new Document("name", name)
+                        .append("expirationDate", expirationString);
+
+                    // Remove the matching ingredient from the pantry array
+                    Bson updated = Updates.pull("pantry", ingredientToRemove);
+
+                    // Perform the update where the user matches and pantry item matches
+                    UpdateResult result = collection.updateOne(Filters.and(idFilter, pantryMatch), updated);
+
+                    if (result.getModifiedCount() > 0) {
+                        jsonResponse.put("status", "success");
+                        jsonResponse.put("message", "Ingredient removed from pantry");
+                    } else {
+                        jsonResponse.put("status", "error");
+                        jsonResponse.put("message", "Matching ingredient not found in pantry");
+                    }
+                } else {
+                    jsonResponse.put("status", "error");
+                    jsonResponse.put("message", "Pantry not found for user");
+                }
+
+                return new Document(jsonResponse).toJson();
+            }
+
+            else {
                 int quantity = Integer.parseInt(quantityString);
 
-                Bson update = Updates.setOnInsert("pantry", new ArrayList<>());
+                // Ensure the user document exists with an empty pantry array if needed
+                Bson ensurePantryExists = Updates.setOnInsert("pantry", new ArrayList<>());
                 UpdateOptions options = new UpdateOptions().upsert(true);
+                collection.updateOne(idFilter, ensurePantryExists, options);
 
-                collection.updateOne(idFilter, update, options);
+                // Try to find and increment quantity if the ingredient already exists
+                Bson pantryMatch = Filters.elemMatch("pantry", Filters.and(
+                    Filters.eq("name", name),
+                    Filters.eq("expirationDate", expirationString)
+                ));
+                Bson updateQuantity = Updates.inc("pantry.$.quantity", quantity);
+                UpdateResult result = collection.updateOne(Filters.and(idFilter, pantryMatch), updateQuantity);
 
-                Bson pantryFilter = Filters.eq("pantry.name", name);
-                Bson updateQuant = Updates.inc("pantry.$.quantity", quantity);
-
-                UpdateResult result = collection.updateOne(Filters.and(idFilter, pantryFilter), updateQuant);
+                // If no matching ingredient found, push a new one
                 if (result.getModifiedCount() == 0) {
                     Document newIngredient = new Document("name", name)
                         .append("expirationDate", expirationString)
                         .append("quantity", quantity);
-                    Bson updatePantry = Updates.push("pantry", newIngredient);
-                    collection.updateOne(idFilter, updatePantry);
+                    Bson pushNew = Updates.push("pantry", newIngredient);
+                    collection.updateOne(idFilter, pushNew);
                 }
 
                 jsonResponse.put("status", "success");
@@ -110,6 +170,8 @@ public class PantryHandler implements Route {
                 Gson gson = new Gson();
                 return gson.toJson(jsonResponse);
             }
+
+
         } catch (Exception e) {
             e.printStackTrace();
             jsonResponse.put("status", "error");
