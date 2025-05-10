@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { addIngredient, deleteIngredient, fetchIngredients } from "../utils/api";
+import { addIngredient, deleteIngredient, fetchPantry } from "../utils/api";
 
 interface Ingredient {
   name: string;
@@ -23,7 +23,7 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
   const loadPantry = async () => {
     if (user?.id) {
       try {
-        const fetchedIngredients = await fetchIngredients(user.id);
+        const fetchedIngredients = await fetchPantry(user.id);
         setIngredients(fetchedIngredients);
       } catch (err) {
         console.error("Error fetching pantry:", err);
@@ -43,15 +43,12 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
         alert("Expiration date must be in DD/MM/YY format.");
         return;
       }
-
-
       const newIngredient: Ingredient = {
         name: ingredient.trim(),
         quantity: quantity.trim(),
         expiration: expiration.trim(),
       };
       const updatedIngredients = [...ingredients, newIngredient];
-
       // Sort by expiration
       updatedIngredients.sort((a, b) => {
         const dateA = new Date(a.expiration);
@@ -63,14 +60,13 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
       setIngredient("");
       setQuantity("");
       setExpiration("");
-
       await addIngredient(
         user.id,
         newIngredient.name,
         newIngredient.quantity,
         newIngredient.expiration
       );
-
+      
       await loadPantry();
 
       const formData = new FormData();

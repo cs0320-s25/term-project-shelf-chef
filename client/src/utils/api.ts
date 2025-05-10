@@ -37,7 +37,7 @@ export async function deleteIngredient(uid: string, name: string, quantity: stri
 }
 
 
-export async function fetchIngredients(uid: string) {
+export async function fetchPantry(userId: string) {
   const response = await fetch(
     `http://localhost:3600/addPantry?userid=${userId}&fetch=true`
   );
@@ -90,4 +90,3 @@ export async function getRecipe(uid: string, ingredients: string[], dietaryRestr
   
 
 }
-
