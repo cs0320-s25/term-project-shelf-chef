@@ -21,13 +21,17 @@ export default function ReceiptScanner() {
       method: "POST",
       body: formData,
     })
-      .then((response) => response.json())
-      .then((jsonData) => {
-        console.log("Upload success:", jsonData);
+      .then((response) => response.text())  // use .text() to see raw response
+        .then((text) => {
+        console.log(selectedFile)
+        console.log("Raw response text:", text);
+        const jsonData = JSON.parse(text); // manually parse so you can see the error
+        return jsonData["success"];
       })
       .catch((error) => {
-        console.error("Error scanning receipt:", error);
-      });
+        console.log(error);
+        }
+      )
   };
 
   return (

@@ -6,12 +6,12 @@ export async function addIngredient(uid: string, title: string, quantity: string
   }
 
   const url = `http://localhost:3600/addPantry?userid=${encodeURIComponent(uid)}&name=${encodeURIComponent(title)}&quantity=${quantity}&expiration=${encodeURIComponent(date)}`;
+
   const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error(`Error ${response.status}: ${response.statusText}`);
   }
-
   const data = await response.json();
   return data["success"];
 }
@@ -80,9 +80,5 @@ export async function getRecipe(uid: string, ingredients: string[], dietaryRestr
     const data = await response.json();
     return data["success"];
   }
-  
-
-  
-
 }
 
