@@ -6,7 +6,6 @@ export async function addIngredient(uid: string, title: string, quantity: string
   }
 
   const url = `http://localhost:3600/addPantry?userid=${encodeURIComponent(uid)}&name=${encodeURIComponent(title)}&quantity=${quantity}&expiration=${encodeURIComponent(date)}`;
-
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -16,29 +15,38 @@ export async function addIngredient(uid: string, title: string, quantity: string
   return data["success"];
 }
 
-export async function deleteIngredient(uid: string, name: string, quantity: string, expiration: string) {
-  //TODO
-  const response = await fetch(`http://localhost:3600/deletePantry`, {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userid: uid,
-      name,
-      quantity,
-      expiration,
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to delete ingredient: ${response.statusText}`);
-  }
-
-  return await response.json();
+export async function fetchPantry(userId: string) {
+  const response = await fetch(
+    `http://localhost:3600/addPantry?userid=${userId}&fetch=true`
+  );
+  const data = await response.json();
+  console.log(data)
+  return data.pantry
 }
 
+export async function updateIngredientQuantity(
+  userId: string,
+  name: string,
+  expiration: string,
+  quantity: string
+) {
+  const url = `http://localhost:3600/addPantry?userid=${encodeURIComponent(userId)}&name=${encodeURIComponent(name)}&expiration=${encodeURIComponent(expiration)}&quantity=${encodeURIComponent(quantity)}&update=true`;
+  console.log(url)
+  const response = await fetch(url);
+  const data = await response.json();
+  return data.status === "success";
+}
 
-export async function fetchIngredients(uid: string) {
-//TODO
+export async function deleteIngredient(
+  userId: string,
+  name: string,
+  expiration: string,
+) {
+  const url = `http://localhost:3600/addPantry?userid=${encodeURIComponent(userId)}&name=${encodeURIComponent(name)}&expiration=${encodeURIComponent(expiration)}&delete=true`;
+  console.log(url)
+  const response = await fetch(url);
+  const data = await response.json();
+  return data.status === "success";
 }
 
 
@@ -46,39 +54,30 @@ export async function getRecipe(uid: string, ingredients: string[], dietaryRestr
   if (!uid || !ingredients) {
     throw new Error("User ID and Ingredients are required.");
   }
-  console.log("Entered getRecipeCall")
 
-  const ingredParams = ingredients.join(",")
-  const dietParams = dietaryRestrictions.join(",")
-  console.log("ingredients:", ingredients)
-  console.log("dietary:", dietaryRestrictions)
+  const ingredParams = encodeURIComponent(ingredients.join(","));
+  const dietParams = encodeURIComponent(dietaryRestrictions.join(","));
 
-  
+  let url = `http://localhost:3600/recipes?ingredients=${ingredParams}`;
   if (dietaryRestrictions.length > 0) {
-    console.log("Dietary Restrictions Search")
-    const url = `http://localhost:3600/recipes?userid=${uid}&ingredients=${ingredParams}&dietaryRestrictions=${dietParams}`;
-    console.log(url)
-    const response = await fetch(url);
-    console.log("GetRecipe Call Complete")
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-  
-    const data = await response.json();
-    return data["success"];
-    
+    url += `&dietaryRestrictions=${dietParams}`;
+  }
+
+
+  console.log("URL:", url);
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Error ${response.status}: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  console.log("API response:", data);
+
+  if (data.response === "success") {
+    return data.recipes;  
   } else {
-    console.log("No Dietary Restrictions Search")
-    const url = `http://localhost:3600/recipes?userid=${uid}&ingredients=${ingredParams}&dietaryRestrictions=${''}`;
-    console.log(url)
-    const response = await fetch(url);
-    console.log(url)
-    if (!response.ok) {
-      throw new Error(`Error ${response.status}: ${response.statusText}`);
-    }
-  
-    const data = await response.json();
-    return data["success"];
+    throw new Error(data.message || "Failed to fetch recipes");
   }
 }
-

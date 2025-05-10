@@ -23,6 +23,66 @@ interface Recipe {
 
 const dietaryOptions = ["vegan", "vegetarian", "glutenFree", "dairyFree", "lowFODMAP"];
 
+//for front end testing purposes
+const mockRecipes: Recipe[] = [
+    {
+      title: "Ginger Chicken Stir-Fry",
+      summary:
+        "Ginger Chicken Stir-Fry requires roughly <b>45 minutes</b> from start to finish...",
+      instructions:
+        "<ol><li>In shallow baking dish, combine teriyaki sauce and water...</li></ol>",
+      readyInMinutes: "45",
+      servings: "6",
+      extendedIngredients: [
+        "broccoli/cauliflower/carrots",
+        "chicken breasts",
+        "chicken broth",
+        "brown rice",
+        "cornstarch",
+        "ground ginger",
+        "onion",
+        "teriyaki sauce",
+        "vegetable oil",
+        "water",
+      ],
+      dishTypes: ["lunch", "main course", "main dish", "dinner"],
+      vegetarian: false,
+      vegan: false,
+      glutenFree: true,
+      dairyFree: true,
+    },
+    {
+      title: "Korean Extra Crispy Fried Chicken w Sweet Spicy Glaze",
+      summary:
+        "Korean Extra Crispy Fried Chicken w Sweet Spicy Glaze might be a good recipe...",
+      instructions:
+        "1. Cut and discard the end tip of each chicken wing. cut remaining pieces...",
+      readyInMinutes: "45",
+      servings: "6",
+      extendedIngredients: [
+        "chicken wings",
+        "canola oil",
+        "garlic",
+        "soy sauce",
+        "thai chili peppers",
+        "ketchup",
+        "rice vinegar",
+        "brown sugar",
+        "sesame oil",
+        "honey",
+        "cornstarch",
+        "water",
+        "salt and pepper",
+        "sesame seeds",
+      ],
+      dishTypes: ["lunch", "main course", "main dish", "dinner"],
+      vegetarian: false,
+      vegan: false,
+      glutenFree: true,
+      dairyFree: true,
+    },
+  ];
+
 const RecipeMaker: React.FC<RecipeMakerProps> = ({ selectedIngredients }) => {
   const { user } = useUser();
   const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
@@ -38,14 +98,16 @@ const RecipeMaker: React.FC<RecipeMakerProps> = ({ selectedIngredients }) => {
   };
 
   const handleRecipeSearch = async () => {
-    if (!user) return;
-    try {
-      const result = await getRecipe(user.id, selectedIngredients, dietaryRestrictions);
-      console.log("Recipe result:", result);
-      setRecipes(result);
-    } catch (err) {
-      console.error("Error fetching recipe:", err);
-    }
+    // if (!user) return;
+    // try {
+    //   const result = await getRecipe(user.id, selectedIngredients, dietaryRestrictions);
+    //   console.log("Recipe result:", result);
+    //   setRecipes(result);
+    // } catch (err) {
+    //   console.error("Error fetching recipe:", err);
+    // }
+    console.log("Mocking recipe fetch...");
+    setRecipes(mockRecipes);
   };
 
   return (

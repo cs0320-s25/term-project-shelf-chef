@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
-import { addIngredient, deleteIngredient } from "../utils/api";
+import { addIngredient, deleteIngredient, fetchPantry, updateIngredientQuantity } from "../utils/api";
 
 interface Ingredient {
   name: string;
@@ -20,7 +20,28 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const { user } = useUser();
 
+  const loadPantry = async () => {
+    if (user?.id) {
+      try {
+        const fetchedIngredients = await fetchPantry(user.id);
+  
+        const normalized = fetchedIngredients.map((item: any) => ({
+          name: item.name,
+          quantity: item.quantity,
+          expiration: item.expirationDate, // ✅ map field here
+        }));
+  
+        setIngredients(normalized);
+      } catch (err) {
+        console.error("Error fetching pantry:", err);
+      }
+    }
+  };
+  
 
+  useEffect(() => {
+    loadPantry();
+  }, [user?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,33 +51,23 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
         alert("Expiration date must be in DD/MM/YY format.");
         return;
       }
-
-
       const newIngredient: Ingredient = {
         name: ingredient.trim(),
         quantity: quantity.trim(),
         expiration: expiration.trim(),
       };
-      const updatedIngredients = [...ingredients, newIngredient];
-
-      // Sort by expiration
-      updatedIngredients.sort((a, b) => {
-        const dateA = new Date(a.expiration);
-        const dateB = new Date(b.expiration);
-        return dateA.getTime() - dateB.getTime();
-      });
-
-      setIngredients(updatedIngredients);
       setIngredient("");
       setQuantity("");
       setExpiration("");
-
+      
       await addIngredient(
         user.id,
         newIngredient.name,
         newIngredient.quantity,
         newIngredient.expiration
       );
+
+      await loadPantry();
 
       const formData = new FormData();
       formData.append("file", selectedFile);
@@ -96,17 +107,10 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
     return expDate < today;
   };
 
-  const handleDelete = async (indexToDelete: number) => {
-    const deletingIngred = ingredients[indexToDelete];
-    const updated = ingredients.filter((_, index) => index !== indexToDelete);
-    setIngredients(updated);
-    await deleteIngredient(user.id, deletingIngred.name, deletingIngred.quantity, deletingIngred.expiration)
-  };
-
   return (
     <div className="App" style={{ padding: "20px" }}>
       <h1>Pantry Shelf</h1>
-
+  
       <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
         <input
           type="text"
@@ -148,47 +152,115 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
           Submit
         </button>
       </form>
-
+  
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-      {ingredients.map((ingredient, index) => {
-        const isChecked = selectedIngredients.includes(ingredient.name);
+        {ingredients.map((ingredient, index) => {
+          const isChecked = selectedIngredients.includes(ingredient.name);
+  
+          return (
+            <div
+              key={index}
+              style={{
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+                padding: "16px",
+                width: "220px",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                backgroundColor: isExpired(ingredient.expiration)
+                  ? "#ffd6d6"
+                  : "#f9f9f9",
+              }}
+            >
+              <h3>{ingredient.name}</h3>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "10px",
+                  marginBottom: "10px",
+                }}
+              >
+                <button
+                  onClick={async () => {
+                    const updated = [...ingredients];
+                    const current = parseInt(updated[index].quantity, 10);
+                    const newQuantity = Math.max(0, current - 1);
+  
+                    if (newQuantity === 0) {
+                      const confirmDelete = window.confirm(
+                        "Are you sure you want to delete this item?"
+                      );
+                      if (!confirmDelete) return;
 
-        return (
-          <div key={index} style={{
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-            padding: "16px",
-            width: "220px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            backgroundColor: isExpired(ingredient.expiration)
-              ? "#ffd6d6" // red-ish if expired
-              : "#f9f9f9",
-          }}>
-            <h3>{ingredient.name}</h3>
-            <p>Quantity: {ingredient.quantity}</p>
-            <p>Expiration: {ingredient.expiration}</p>
-            <p>
-            <label>
-              <input
-                type="checkbox"
-                checked={isChecked}
-                onChange={() => handleSelect(ingredient)}
-              />
-              Use in recipe
-            </label>
-            </p>
-            <button onClick={() => handleDelete(index)} style={{ color: "red" }}>
-              Delete
-            </button>
-          </div>
-        );
-      })}
+                      const itemToDelete = updated[index];
+                      setIngredients(updated.filter((_, i) => i !== index));
+
+                      await deleteIngredient(
+                        user.id,
+                        itemToDelete.name,
+                        itemToDelete.expiration
+                      );
+                      return;
+                    }
+  
+                    updated[index].quantity = newQuantity.toString();
+                    setIngredients(updated);
+  
+                    await updateIngredientQuantity(
+                      user.id,
+                      updated[index].name,
+                      updated[index].expiration,
+                      updated[index].quantity
+                    );
+                  }}
+                  disabled={parseInt(ingredient.quantity, 10) <= 0}
+                >
+                  –
+                </button>
+  
+                <span style={{ minWidth: "24px", textAlign: "center" }}>
+                  {ingredient.quantity}
+                </span>
+  
+                <button
+                  onClick={async () => {
+                    const updated = [...ingredients];
+                    const current = parseInt(updated[index].quantity, 10);
+                    const newQuantity = Math.min(99, current + 1);
+                    updated[index].quantity = newQuantity.toString();
+                    setIngredients(updated);
+  
+                    await updateIngredientQuantity(
+                      user.id,
+                      updated[index].name,
+                      updated[index].expiration,
+                      updated[index].quantity
+                    );
+                  }}
+                  disabled={parseInt(ingredient.quantity, 10) >= 99}
+                >
+                  +
+                </button>
+              </div>
+              <p>Expiration: {ingredient.expiration}</p>
+              <p>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => handleSelect(ingredient)}
+                  />
+                  Use in recipe
+                </label>
+              </p>
+            </div>
+          );
+        })}
       </div>
-
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-        
-
-      </div>
+  
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}></div>
     </div>
   );
+  
 }
