@@ -98,14 +98,14 @@ const RecipeMaker: React.FC<RecipeMakerProps> = ({ selectedIngredients }) => {
   };
 
   const handleRecipeSearch = async () => {
-    // if (!user) return;
-    // try {
-    //   const result = await getRecipe(user.id, selectedIngredients, dietaryRestrictions);
-    //   console.log("Recipe result:", result);
-    //   setRecipes(result);
-    // } catch (err) {
-    //   console.error("Error fetching recipe:", err);
-    // }
+    if (!user) return;
+     try {
+       const result = await getRecipe(user.id, selectedIngredients, dietaryRestrictions);
+       console.log("Recipe result:", result);
+       setRecipes(result);
+     } catch (err) {
+       console.error("Error fetching recipe:", err);
+     }
     console.log("Mocking recipe fetch...");
     setRecipes(mockRecipes);
   };

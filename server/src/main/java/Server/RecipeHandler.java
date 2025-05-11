@@ -26,8 +26,8 @@ public class RecipeHandler implements Route {
   private final MongoCollection<Document> recipeCollection;
 
   public RecipeHandler(MongoClient mongoClient, String dbName, String collectionName) {
-    MongoDatabase database = mongoClient.getDatabase(dbName);
-    this.recipeCollection = database.getCollection(collectionName);
+    MongoDatabase database = mongoClient.getDatabase("Recipes");
+    this.recipeCollection = database.getCollection("recipes");
   }
 
   /**
@@ -43,6 +43,7 @@ public class RecipeHandler implements Route {
   @Override
   public Object handle(Request request, Response response) {
     String ingredientsParam = request.queryParams("ingredients");
+    System.out.println(this.recipeCollection.countDocuments());
     String dietaryRestrictionsParam = request.queryParams("dietaryRestrictions");
     Map<String, Object> jsonResponse = new HashMap<>();
 
