@@ -1,9 +1,5 @@
 package Server;
 
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.ServerApi;
-import com.mongodb.ServerApiVersion;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
@@ -46,6 +42,8 @@ public class APIServer {
 
     MongoClient mongoClient = MongoClients.create("mongodb+srv://kyle:kylepassword@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes");
     RecipeHandler handler = new RecipeHandler(mongoClient, "database", "recipes");
+
+    // Register the recipe route
 
 
     Spark.get("load", new LoadHandler());
