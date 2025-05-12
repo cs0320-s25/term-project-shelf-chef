@@ -87,7 +87,6 @@ export default function ReceiptScanner() {
         expiration.trim()
       );
   }
-
   // Clear the list and reload pantry after submission
   setIngredients([]);
 };

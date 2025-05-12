@@ -13,6 +13,10 @@ import com.mongodb.client.model.InsertManyOptions;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+
+import static com.mongodb.client.model.Filters.eq;
+
 import java.nio.file.Files;
 
 import org.bson.Document;
@@ -21,6 +25,7 @@ import org.json.JSONObject;
 
 public class MongoConnection {
     public static void main(String[] args) {
+        
         String connectionString = "mongodb+srv://ryanma1:DsHucS2aJltLkIp9@recipes.otteuip.mongodb.net/?retryWrites=true&w=majority&appName=Recipes";
         ServerApi serverApi = ServerApi.builder()
                 .version(ServerApiVersion.V1)
@@ -39,13 +44,14 @@ public class MongoConnection {
             String content = new String(Files.readAllBytes(Paths.get(jsonFilePath)));
             JSONArray recipesArray = new JSONArray(content);
 
-            List<Document> documents = new ArrayList<>();
             for (int i = 0; i < recipesArray.length(); i++) {
                 JSONObject jsonObject = recipesArray.getJSONObject(i);
-                documents.add(Document.parse(jsonObject.toString()));
+                String title = jsonObject.optString("title");
+                System.out.println(title);
+                if (collection.find(eq("title", title)).first() == null) {
+                   collection.insertOne(Document.parse(jsonObject.toString()));
+                }
             }
-
-            collection.insertMany(documents, new InsertManyOptions().ordered(false));
             System.out.println("Successfully inserted recipes into MongoDB.");
         } catch (Exception e) {
             e.printStackTrace();
