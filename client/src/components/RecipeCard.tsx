@@ -12,6 +12,8 @@ interface Recipe {
   vegan: boolean;
   glutenFree: boolean;
   dairyFree: boolean;
+  missingCount?: number;
+  extraCount?: number;
 }
 
 interface Props {
@@ -38,6 +40,12 @@ const RecipeCard: React.FC<Props> = ({ recipe }) => {
       }}
     >
       <h2>{recipe.title}</h2>
+      {recipe.missingCount !== undefined && (
+        <p><strong>Missing Ingredients:</strong> {recipe.missingCount}</p>
+      )}
+      {recipe.extraCount !== undefined && (
+        <p><strong>Extra Ingredients:</strong> {recipe.extraCount}</p>
+      )}
       <button
         onClick={() => setExpanded(!expanded)}
         style={{

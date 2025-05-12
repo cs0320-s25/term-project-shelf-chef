@@ -19,6 +19,8 @@ interface Recipe {
     vegan: boolean;
     glutenFree: boolean;
     dairyFree: boolean;
+    missingCount?: number;
+    extraCount?: number;
   }
 
 const dietaryOptions = ["vegan", "vegetarian", "glutenFree", "dairyFree", "lowFODMAP"];

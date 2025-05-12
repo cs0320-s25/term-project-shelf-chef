@@ -1,11 +1,15 @@
 package Server;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+import java.util.stream.Collectors;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -94,15 +98,44 @@ public class RecipeHandler implements Route {
       }
 
       // Combine filters with AND
-      Bson filter = Filters.and(filters);
+      Bson filter = Filters.or(filters);
 
       // Query MongoDB
       FindIterable<Document> results = recipeCollection.find(filter);
 
+      Set<String> inputSet = new HashSet<>(List.of(searchIngredients));
+
       List<Map<String, Object>> matchingRecipes = new ArrayList<>();
+
       for (Document doc : results) {
-        matchingRecipes.add(docToMap(doc));
+        Map<String, Object> recipe = docToMap(doc);
+
+        // Ingredients required by the recipe
+        List<String> recipeIngredients = ((List<?>) doc.get("extendedIngredients"))
+            .stream()
+            .map(Object::toString)
+            .map(String::toLowerCase)
+            .collect(Collectors.toList());
+
+        // missingCount: ingredients the recipe needs but are NOT in pantry
+        long missingCount = recipeIngredients.stream()
+            .filter(recipeIng -> inputSet.stream().noneMatch(recipeIng::contains))
+            .count();
+
+        // extraCount: pantry ingredients that are NOT used in this recipe
+        long extraCount = inputSet.stream()
+            .filter(pantryIng -> recipeIngredients.stream().noneMatch(recipeIng -> recipeIng.contains(pantryIng)))
+            .count();
+
+        recipe.put("missingCount", missingCount);
+        recipe.put("extraCount", extraCount);
+        recipe.put("matchScore", missingCount + extraCount); // for sorting
+
+        matchingRecipes.add(recipe);
       }
+
+      // Sort recipes to prioritize simplest ones (least extra ingredients)
+      matchingRecipes.sort(Comparator.comparingInt(r -> (int) (long) r.get("matchScore")));
 
       jsonResponse.put("response", "success");
       jsonResponse.put("recipes", matchingRecipes);
