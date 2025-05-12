@@ -106,8 +106,8 @@ const RecipeMaker: React.FC<RecipeMakerProps> = ({ selectedIngredients }) => {
      } catch (err) {
        console.error("Error fetching recipe:", err);
      }
-    console.log("Mocking recipe fetch...");
-    setRecipes(mockRecipes);
+    // console.log("Mocking recipe fetch...");
+    // setRecipes(mockRecipes);
   };
 
   return (

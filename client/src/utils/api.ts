@@ -19,9 +19,17 @@ export async function fetchPantry(userId: string) {
   const response = await fetch(
     `http://localhost:3600/addPantry?userid=${userId}&fetch=true`
   );
-  const data = await response.json();
-  console.log(data)
-  return data.pantry
+
+  const text = await response.text();  
+  console.log("Raw response from /addPantry:", text);
+
+  try {
+    const data = JSON.parse(text);     
+    return data.pantry;
+  } catch (e) {
+    console.error("JSON parsing failed:", e);
+    throw new Error("Invalid JSON received from /addPantry");
+  }
 }
 
 export async function updateIngredientQuantity(
