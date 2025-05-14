@@ -96,13 +96,20 @@ public class ReceiptHandler implements Route {
 
     private List<String> filterByIngredients(String ocrText, Set<String> ingredientSet) {
         List<String> matches = new ArrayList<>();
-        String[] tokens = ocrText.toLowerCase().split("[^a-zA-Z]+");
-        for (String token : tokens) {
-            if (ingredientSet.contains(token)) {
-                matches.add(token);
+        String[] lines = ocrText.toLowerCase().split("\\r?\\n");
+        List<String> sortedIngredients = new ArrayList<>(ingredientSet);
+        sortedIngredients.sort((a, b) -> Integer.compare(b.length(), a.length()));
+
+        for (String line : lines) {
+            for (String ingredient : sortedIngredients) {
+                if (line.contains(ingredient.toLowerCase())) {
+                    matches.add(ingredient);
+                    break;
             }
         }
-        return matches;
+    }
+
+    return matches;
     }
 
     private String toJson(Map<String, Object> map) {

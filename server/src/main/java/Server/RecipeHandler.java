@@ -47,7 +47,6 @@ public class RecipeHandler implements Route {
   @Override
   public Object handle(Request request, Response response) {
     String ingredientsParam = request.queryParams("ingredients");
-    System.out.println(this.recipeCollection.countDocuments());
     String dietaryRestrictionsParam = request.queryParams("dietaryRestrictions");
     Map<String, Object> jsonResponse = new HashMap<>();
 
@@ -73,7 +72,9 @@ public class RecipeHandler implements Route {
       // Add dietary restriction filters if provided
       if (dietaryRestrictionsParam != null && !dietaryRestrictionsParam.isEmpty()) {
           String[] restrictions = dietaryRestrictionsParam.toLowerCase().split(",\\s*");
+          
           for (String restriction : restrictions) {
+            System.out.println(restriction);
               switch (restriction.trim()) {
                   case "vegan":
                       filters.add(Filters.eq("vegan", true));
@@ -98,7 +99,7 @@ public class RecipeHandler implements Route {
       }
 
       // Combine filters with AND
-      Bson filter = Filters.or(filters);
+      Bson filter = Filters.and(filters);
 
       // Query MongoDB
       FindIterable<Document> results = recipeCollection.find(filter);
