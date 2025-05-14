@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import path from 'path';
 import { Locator } from '@playwright/test';
 import { setupClerkTestingToken, clerk } from "@clerk/testing/playwright";
 
@@ -12,7 +11,6 @@ test.beforeEach(async ({page}) => {
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await page.getByRole('textbox', { name: 'Password' }).fill('testcs0320');
   await page.getByRole('button', { name: 'Continue' }).click();
-  
 });
 
 
@@ -43,10 +41,10 @@ test('test adding and deleting ingredients persists across reloads', async ({ pa
   await page.getByRole('textbox', { name: 'Enter Quantity' }).click();
   await page.getByRole('textbox', { name: 'Enter Quantity' }).fill('3');
   await page.locator('input[placeholder="Enter Expiration (DD/MM/YY)"]').click({force:true});
-  await page.locator('input[placeholder="Enter Expiration (DD/MM/YY)"]').fill('01/01/26');
+  await page.locator('input[placeholder="Enter Expiration (DD/MM/YY)"]').fill('01/01/25');
   await page.getByText("Submit").click({force: true});
   await page.waitForTimeout(2000);
-    await expect(page.getByText("34")).toBeVisible();
+    await expect(page.getByText("37")).toBeVisible();
     
 });
 
@@ -66,16 +64,26 @@ test('test receipt scanner page', async ({ page }) => {
 });
 
 test('test receipe page', async ({ page }) => {
+  const checkboxes = await page.locator('input[type="checkbox"]').all();
+
+  for (const checkbox of checkboxes) {
+    if (!(await checkbox.isChecked())) {
+      await checkbox.check();
+    }
+  }
   await page.getByRole('button', { name: 'Recipe Finder' }).click();
-  await page.getByRole('heading', { name: 'Selected Ingredients for' }).click();
-  await page.getByRole('button', { name: 'Search for Recipe' }).click();
-  await page.getByRole('heading', { name: 'Dietary Restrictions' }).click();
-  await page.getByText('vegan').click();
-  await page.getByText('vegetarian').click();
-  await page.getByText('glutenFree').click();
-  await page.getByText('dairyFree').click();
-  await page.getByText('lowFODMAP').click();
-  await page.getByText('Dietary Restrictions vegan').click();
-  await page.getByRole('button', { name: 'Sign out' }).click();
-   
+  await page.getByRole('button', { name: 'Search for Recipe' }).click({force:true});
+  await page.waitForTimeout(2000);
+    await expect(page.getByText("Chilled Swiss Oatmeal")).toBeVisible(); //contains milk
+  
+  await page.getByText('vegan').click({force:true});
+  await page.getByRole('button', { name: 'Search for Recipe' }).click({force:true});
+  await page.waitForTimeout(2000);
+    await expect(page.getByText("Chilled Swiss Oatmeal")).not.toBeVisible(); //should not be visible with vegan
+    await expect(page.getByText("Vegan Banana Nut Muffins")).toBeVisible(); //vegan food should be visible
+  
+  await page.getByText('vegan').click({force:true}); //undo vegan
+  await page.getByText('dairyFree').click({force:true}); 
+    
+
 });
