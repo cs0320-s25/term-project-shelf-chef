@@ -44,7 +44,47 @@ function App() {
   return (
     <div className="App">
       <SignedOut>
-        <SignInButton />
+        <div
+    style={{
+      height: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      textAlign: "center",
+      backgroundColor: "#f5f5f5",
+    }}
+  >
+    <h1 style={{ 
+        fontSize: "2.5rem", 
+        marginBottom: "20px", 
+        color: "#333" 
+        }}>
+      Welcome to ShelfChef
+    </h1>
+      <p style={{ 
+        fontSize: "1.2rem", 
+        maxWidth: "500px",
+        color: "#555", 
+        marginBottom: "30px" }}>
+      ShelfChef helps you find recipes based on what's already in your pantry.
+      Just add your ingredients and discover what you can cook!
+    </p>
+    <SignInButton mode="modal">
+      <button
+        style={{
+          padding: "12px 24px",
+          fontSize: "18px",
+          backgroundColor: "#4285f4",
+          color: "white",
+          borderRadius: "6px",
+          cursor: "pointer",
+        }}
+      >
+        Sign In
+      </button>
+    </SignInButton>
+  </div>
       </SignedOut>
 
       <SignedIn>

@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { addIngredient, deleteIngredient, fetchPantry, updateIngredientQuantity } from "../utils/api";
+import { relative } from "path";
 
 interface Ingredient {
   name: string;
   quantity: string;
-  expiration: string; // Format: MM/DD/YY
+  expiration: string; // Format: DD/MM/YY
 }
 
 interface PantryProps {
@@ -122,7 +123,7 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
           type="text"
           value={expiration}
           onChange={(e) => setExpiration(e.target.value)}
-          placeholder="Enter Expiration (MM/DD/YY)"
+          placeholder="Enter Expiration (DD/MM/YY)"
           style={{
             padding: "8px",
             fontSize: "16px",
@@ -143,6 +144,7 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
             <div
               key={index}
               style={{
+                position: "relative",
                 border: "1px solid #ccc",
                 borderRadius: "8px",
                 padding: "16px",
@@ -153,6 +155,32 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
                   : "#f9f9f9",
               }}
             >
+              {isExpired(ingredient.expiration) && (
+             <div
+                style={{
+                position: "absolute",
+                top: "8px",
+                right: "8px",
+                cursor: "pointer",
+              }}
+              >
+            <span
+              style={{
+              display: "inline-block",
+              width: "18px",
+              height: "18px",
+              borderRadius: "50%",
+              backgroundColor: "#ff5e5e",
+              color: "#fff",
+              fontSize: "12px",
+              lineHeight: "18px",
+              textAlign: "center",
+              fontWeight: "bold",
+              position: "relative",
+            }}
+          title="This ingredient is expired."
+          > ! </span>
+          </div> )}
               <h3>{ingredient.name}</h3>
               <div
                 style={{
@@ -244,5 +272,4 @@ export default function Pantry({ selectedIngredients, setSelectedIngredients }: 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}></div>
     </div>
   );
-  
 }
