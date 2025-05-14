@@ -13,6 +13,7 @@ export default function ReceiptScanner() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [confirmed, setConfirmed] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { user } = useUser();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,22 +31,27 @@ export default function ReceiptScanner() {
     formData.append("file", selectedFile);
 
     try {
-      const response = await fetch("http://localhost:3600/receipt", {
-        method: "POST",
-        body: formData,
-      });
-      const jsonData = await response.json();
-      if (jsonData.success) {
-        const entries: Ingredient[] = jsonData.success.map((item: string) => ({
-          name: item,
-          quantity: 1,
-          expiration: "", // default to empty
-        }));
-        setIngredients(entries);
-      }
-    } catch (error) {
-      console.error("Upload failed:", error);
-    }
+  const response = await fetch("http://localhost:3600/receipt", {
+    method: "POST",
+    body: formData,
+  });
+  const jsonData = await response.json();
+
+  if (jsonData.success) {
+    const entries: Ingredient[] = jsonData.success.map((item: string) => ({
+      name: item,
+      quantity: "1",
+      expiration: "", // default to empty
+    }));
+    setIngredients(entries);
+    setErrorMsg(null); // clear any previous error
+  } else if (jsonData.error) {
+    setErrorMsg(jsonData.error); // set error message from server
+  }
+} catch (error) {
+  console.error("Upload failed:", error);
+  setErrorMsg("Failed to upload file. Please try again.");
+}
   };
 
   const handleQuantityChange = (index: number, value: string) => {
@@ -102,7 +108,9 @@ export default function ReceiptScanner() {
       >
         Upload
       </button>
-
+      {errorMsg && (
+          <p style={{ color: "red", marginTop: "15px" }}>{errorMsg}</p>
+        )}
       {ingredients.length > 0 && (
         <div style={{ marginTop: "20px" }}>
           <h2>Detected Ingredients</h2>

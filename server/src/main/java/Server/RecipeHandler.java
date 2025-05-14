@@ -74,7 +74,6 @@ public class RecipeHandler implements Route {
           String[] restrictions = dietaryRestrictionsParam.toLowerCase().split(",\\s*");
           
           for (String restriction : restrictions) {
-            System.out.println(restriction);
               switch (restriction.trim()) {
                   case "vegan":
                       filters.add(Filters.eq("vegan", true));
