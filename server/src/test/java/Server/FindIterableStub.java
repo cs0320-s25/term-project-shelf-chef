@@ -5,35 +5,89 @@ import com.mongodb.ExplainVerbosity;
 import com.mongodb.Function;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Collation;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class FindIterableStub implements FindIterable<Document> {
-  private final Document doc;
+  private final List<Document> documents;
 
-  public FindIterableStub(Document doc) {
-    this.doc = doc;
+  public FindIterableStub(List<Document> documents) {
+    this.documents = documents;
   }
 
   @Override
   public Document first() {
-    return doc;
+    return documents.isEmpty() ? null : documents.get(0);
   }
 
-  // --- Stubbed chainable methods ---
-  @Override public FindIterable<Document> filter(Bson filter) { return this; }
-  @Override public FindIterable<Document> limit(int limit) { return this; }
-  @Override public FindIterable<Document> skip(int skip) { return this; }
-  @Override public FindIterable<Document> sort(Bson sort) { return this; }
-  @Override public FindIterable<Document> projection(Bson projection) { return this; }
-  @Override public FindIterable<Document> maxTime(long maxTime, TimeUnit timeUnit) { return this; }
-  @Override public FindIterable<Document> maxAwaitTime(long maxAwaitTime, TimeUnit timeUnit) { return this; }
-  @Override public FindIterable<Document> noCursorTimeout(boolean noCursorTimeout) { return this; }
+  @Override
+  public <U> MongoIterable<U> map(Function<Document, U> function) {
+    return null;
+  }
+
+  @Override
+  public <A extends Collection<? super Document>> A into(A objects) {
+    return null;
+  }
+
+  @Override
+  public MongoCursor<Document> iterator() {
+    return null;
+  }
+
+  @Override
+  public MongoCursor<Document> cursor() {
+    return null;
+  }
+
+  @Override
+  public void forEach(Consumer<? super Document> action) {
+    documents.forEach(action);
+  }
+
+  @Override
+  public FindIterable<Document> filter(Bson filter) {
+    return this;
+  }
+
+  @Override
+  public FindIterable<Document> limit(int limit) {
+    return this;
+  }
+
+  @Override
+  public FindIterable<Document> skip(int i) {
+    return null;
+  }
+
+  @Override
+  public FindIterable<Document> maxTime(long l, TimeUnit timeUnit) {
+    return null;
+  }
+
+  @Override
+  public FindIterable<Document> maxAwaitTime(long l, TimeUnit timeUnit) {
+    return null;
+  }
+
+  @Override
+  public FindIterable<Document> sort(Bson sort) {
+    return this;
+  }
+
+  @Override
+  public FindIterable<Document> noCursorTimeout(boolean b) {
+    return null;
+  }
 
   @Override
   public FindIterable<Document> oplogReplay(boolean b) {
@@ -110,17 +164,10 @@ public class FindIterableStub implements FindIterable<Document> {
     return null;
   }
 
-  // --- Optional methods ---
-  @Override public MongoCursor<Document> iterator() { return null; }
-  @Override public MongoCursor<Document> cursor() { return null; }
-  @Override public <U> com.mongodb.client.MongoIterable<U> map(Function<Document, U> mapper) { return null; }
-
   @Override
-  public <A extends Collection<? super Document>> A into(A objects) {
+  public Document explain() {
     return null;
   }
-
-  @Override public Document explain() { return null; }
 
   @Override
   public Document explain(ExplainVerbosity explainVerbosity) {
@@ -137,6 +184,10 @@ public class FindIterableStub implements FindIterable<Document> {
     return null;
   }
 
-  // If you're not using this in your test, omit this method
-  // @Override public <E> com.mongodb.client.Explainable<E> asExplainable() { return null; }
+  @Override
+  public FindIterable<Document> projection(Bson projection) {
+    return this;
+  }
+
+  // Ignore other methods unless your handler explicitly calls them
 }

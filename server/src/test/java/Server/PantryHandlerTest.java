@@ -141,6 +141,7 @@ public class PantryHandlerTest {
     }
   }
 
+  // test fetching pantry, then adding an ingredient, then fetching again
   @Test
   public void testFetchAddFetchIngredientFlow() {
     String userId = "test-user-flow-123";
@@ -214,6 +215,7 @@ public class PantryHandlerTest {
     }
   }
 
+  // test add an ingredient then change the quantity
   @Test
   public void testPantryUpdateAfterAddingNewIngredient() {
     String userId = "test-user-updatecheck-456";
@@ -236,7 +238,6 @@ public class PantryHandlerTest {
       MongoDatabase db = client.getDatabase("UserPantries");
       MongoCollection<Document> col = db.getCollection("pantries");
 
-      // 🔄 Start fresh
       col.deleteOne(Filters.eq("userId", userId));
 
       PantryHandler handler = new PantryHandler();
@@ -302,6 +303,7 @@ public class PantryHandlerTest {
     }
   }
 
+  // test fetch pantry, then change the quantity for an ingredient, then fetch again
   @Test
   public void testUpdateIngredientQuantityBetweenFetches() {
     String userId = "test-user-update-quantity-789";
@@ -388,6 +390,7 @@ public class PantryHandlerTest {
     }
   }
 
+  // test delete an ingredient and make sure it remains deleted across reload
   @Test
   public void testDeleteIngredientAndVerifyRemoval() {
     String userId = "test-user-delete-001";
